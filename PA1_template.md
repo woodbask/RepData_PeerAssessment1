@@ -1,9 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
@@ -13,8 +8,25 @@ output:
 
 We first Include libraries dplyr, chron, and lattice, to be used for analysis and processing of the data. Next, we download the activity.csv file in the working directory, and read the file in R. 
 
-```{r echo=TRUE}
+
+```r
 library(dplyr)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+## 
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+## 
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```r
 library(chron)
 library(lattice)
 
@@ -42,10 +54,20 @@ Visually inspect the data using "View" to spotcheck.
 Understand the structure of the data. As an example, are the interval numbers
 the same for all days? Are the records missing partially for a day or an entire day? etc.
 
-```{r echo=TRUE}
+
+```r
 # check the data set structures
 str(df)
+```
 
+```
+## 'data.frame':	17568 obs. of  3 variables:
+##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
+##  $ date    : Factor w/ 61 levels "2012-10-01","2012-10-02",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
+```
+
+```r
 # visually inspect the dataset
 View(df)
 
@@ -62,6 +84,8 @@ plot(rowCountByDate$date, rowCountByDate$n, type="l",
   xlab="Date", ylab="Number of intervals")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
+
 
 ## What is mean total number of steps taken per day?
 
@@ -69,7 +93,8 @@ For this part of the assignment, we ignore the missing values in the dataset.
 
 **1.First, we calculate the total number of steps taken per day**
 
-```{r echo=TRUE}
+
+```r
 # calcuate the total number of steps taken per day 
 byDateSum <- group_by(df,date) %>% 
 		summarize(totalSteps = sum(steps, na.rm=TRUE)) 
@@ -77,19 +102,31 @@ byDateSum <- group_by(df,date) %>%
 
 **2.Second, we plot a histogram of the total number of steps taken each day**
 
-```{r echo=TRUE}
+
+```r
 # histogram of total number of steps taken per day
 hist(	byDateSum$totalSteps, breaks=20,
 	main="Total number of steps taken per day", 
 	xlab="Steps", col="yellow") 
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
+
 **3.Third, we calculate and report the mean and median of the total number of steps taken per day**
 
-```{r echo=TRUE}
+
+```r
 # calculate mean and median of total number of steps taken per day
 summarize(byDateSum, meanTotalStepsPerDay = mean(totalSteps), 
 		medianTotalStepsPerDay = median(totalSteps))
+```
+
+```
+## Source: local data frame [1 x 2]
+## 
+##   meanTotalStepsPerDay medianTotalStepsPerDay
+##                  (dbl)                  (int)
+## 1              9354.23                  10395
 ```
 
 
@@ -101,7 +138,8 @@ For this part, we do the following:
 
 The time series plot (i.e. type = "l") will be the 5-minute interval (x-axis) vs. the average number of steps taken, averaged across all days (y-axis)
 
-```{r echo=TRUE}
+
+```r
 # time series plot of 5 min interval and steps taken across all days
 byInterval <- group_by(df,interval) %>% 
 		summarize(averageSteps = mean(steps, na.rm=TRUE))
@@ -109,28 +147,52 @@ plot(byInterval$interval, byInterval$averageSteps, type="l",
 	xlab="Interval", ylab="Average Steps")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png) 
+
 
 **2.Answer the question "Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?"**
 
 ANSWER: The 5-min interval is:  
-```{r echo=TRUE}
+
+```r
 # calculate the 5 min interval with the max average 
 # number of steps across days
 byInterval[which(byInterval$averageSteps==max(byInterval$averageSteps)),"interval"]
+```
 
+```
+## Source: local data frame [1 x 1]
+## 
+##   interval
+##      (int)
+## 1      835
 ```
 
 The corresponding maximum number of steps on average across all days is:
-```{r echo=TRUE}
+
+```r
 max(byInterval$averageSteps)
+```
+
+```
+## [1] 206.1698
 ```
 
 
 ## Imputing missing values
 For this part, we first calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs). 
-```{r echo=TRUE}
+
+```r
 # total number of missing values (coded as NA) in the dataset
 count(df[!complete.cases(df),])
+```
+
+```
+## Source: local data frame [1 x 1]
+## 
+##       n
+##   (int)
+## 1  2304
 ```
 
 Then we do the following:
@@ -141,7 +203,8 @@ The strategy we adopt here is to update the missing values for the steps with th
 
 
 **2.Create a new dataset that is equal to the original dataset but with the missing data filled in.**
-```{r echo=TRUE}
+
+```r
 # make a copy of the data into a new data set
 dfNew <- df
 
@@ -163,17 +226,30 @@ byDateSumNew <- group_by(dfNew,date) %>%
 
 **3.Make a histogram of the total number of steps taken each day and calculate and report the mean and median total number of steps taken per day.**
 
-```{r echo=TRUE}
+
+```r
 # histogram of total number of steps taken per day
 hist(	byDateSumNew$totalSteps, breaks=20,
 	main="Total number of steps taken per day (with 
 	missing values replaced by mean for each interval)", 
 	xlab="Steps", col="green")
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-11-1.png) 
+
+```r
 # calculate mean and median of total number of steps taken per day 
 # for new dataset
 summarize(byDateSumNew, meanTotalStepsPerDay = mean(totalSteps), 
 		medianTotalSteps = median(totalSteps))
+```
+
+```
+## Source: local data frame [1 x 2]
+## 
+##   meanTotalStepsPerDay medianTotalSteps
+##                  (dbl)            (dbl)
+## 1             10766.19         10766.19
 ```
 
 **4.Answer the question "Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?"**
@@ -186,7 +262,8 @@ ANSWER: Yes, with the imputation of missing values, we see that the mean and med
 
 For this part, we divide the dataset into two, one for weekend and the other for weekday, based on the date values. We then panel plot the data between for weekend and weekday to observe differences. The Number of steps (y axis) for each 5 min interval (x axis) are plotted.
 
-```{r echo=TRUE}
+
+```r
 # add a column to the dataset indicating if date is a weekend or not
 dfNew$weekend <- is.weekend(as.Date(dfNew$date))
 
@@ -204,5 +281,6 @@ dfplot <- rbind(dfWeekend, dfWeekday)
 # panel plot the weekend and weekday data columnwise
 xyplot(meanSteps~interval | daytype, dfplot, type="l", layout=c(1,2), 
        xlab="Interval", ylab="Number of steps")
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
